@@ -1,43 +1,73 @@
 <?php include 'functions.php'; ?>
 
 <?php
+$message = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = trim($_POST['name']);
     if (!empty($name)) {
         addUser($name);
-        echo "<p>Użytkownik dodany.</p>";
+        $message = "<div class='alert alert-success'>Nowy członek rodziny dodany.</div>";
     } else {
-        echo "<p>Błąd: Nazwa nie może być pusta.</p>";
+        $message = "<div class='alert alert-danger'>Błąd: Imię nie może być puste.</div>";
     }
 }
 ?>
 
-<html>
+<!DOCTYPE html>
+<html lang="pl">
 <head>
-    <title>Użytkownicy - Kalkulator Budżetu Domowego</title>    <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script></head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Użytkownicy - Kalkulator Budżetu Domowego</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
-    <h1>Członkowie rodziny</h1>
-    <form method="post">
-        <label for="name">Imię członka rodziny:</label>
-        <input type="text" id="name" name="name" required>
-        <button type="submit">Dodaj członka rodziny</button>
-    </form>
-    <br>
-    <h2>Lista członków rodziny</h2>
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Imię</th>
-        </tr>
-        <?php
-        $users = getUsers();
-        foreach ($users as $user) {
-            echo "<tr><td>{$user['id']}</td><td>{$user['name']}</td></tr>";
-        }
-        ?>
-    </table>
-    <br>
-    <a href="index.php">Powrót do dashboard</a>
+    <nav>
+        <ul>
+            <li><a href="family.php">Wybór rodziny</a></li>
+            <li><a href="users.php" class="active">Zarządzaj członkami</a></li>
+            <li><a href="budget.php">Ustawienia Budżetu</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Zarządzanie rodziną 👨‍👩‍👧‍👦</h1>
+        <?php echo $message; ?>
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="name">Imię nowego członka rodziny:</label>
+                <input type="text" id="name" name="name" required placeholder="np. Anna">
+            </div>
+            <button type="submit">Dodaj członka rodziny</button>
+        </form>
+
+        <h2 style="text-align: center; margin-top: 3rem;">Lista członków rodziny</h2>
+        <div class="table-container" style="max-width: 600px; margin: 0 auto;">
+            <table>
+                <tr>
+                    <th style="width: 80px; text-align: center;">ID</th>
+                    <th>Imię</th>
+                    <th style="text-align: right;">Akcja</th>
+                </tr>
+                <?php
+                $users = getUsers();
+                if(empty($users)) {
+                    echo "<tr><td colspan='3' style='text-align: center; color: var(--text-muted);'>Brak zarejestrowanych osób.</td></tr>";
+                } else {
+                    foreach ($users as $user) {
+                        echo "<tr>
+                                <td style='text-align: center; color: var(--text-muted);'>#{$user['id']}</td>
+                                <td style='font-weight: 500;'>{$user['name']}</td>
+                                <td style='text-align: right;'>
+                                    <a href='index.php?user={$user['id']}' style='font-size: 0.875rem;'>Przejdź na pulpit &rarr;</a>
+                                </td>
+                              </tr>";
+                    }
+                }
+                ?>
+            </table>
+        </div>
+    </div>
 </body>
 </html>
