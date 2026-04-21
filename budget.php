@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Wielki Zegar w tle -->
+    <div id="bg-clock" class="clock-fade" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20vw; font-weight: 900; color: rgba(255,255,255,0.02); z-index: -2; pointer-events: none; white-space: nowrap; user-select: none;"></div>
+    
     <nav>
         <ul>
             <li><a href="index.php">Pulpit Rodzinny</a></li>
@@ -52,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="stat-item">
                 <span class="stat-label">Wydano do tej pory:</span>
-                <span class="stat-value badge bad"><?php echo getSpentThisMonth(); ?> PLN</span>
+                <span class="stat-value badge bad"><?php echo getTotalExpenses(); ?> PLN</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Pozostało:</span>
@@ -76,5 +79,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
     </div>
+    
+    <script>
+        function updateClock() {
+            const d = new Date();
+            const clock = document.getElementById('bg-clock');
+            if (clock) {
+                clock.innerText = d.getHours().toString().padStart(2, '0') + ':' + 
+                                  d.getMinutes().toString().padStart(2, '0') + ':' + 
+                                  d.getSeconds().toString().padStart(2, '0');
+            }
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
 </body>
 </html>

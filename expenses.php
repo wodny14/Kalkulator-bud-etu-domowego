@@ -2,18 +2,6 @@
 
 <?php
 $userIdForNav = $_GET['user'] ?? '';
-$message = '';
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $userId = $_POST['userId'];
-    $amount = floatval($_POST['amount']);
-    $description = trim($_POST['description']);
-    if (!empty($userId) && $amount > 0 && !empty($description)) {
-        addExpense($userId, $amount, $description);
-        $message = "<div class='alert alert-success'>Wydatek dodany pomyślnie.</div>";
-    } else {
-        $message = "<div class='alert alert-danger'>Błąd: Uzupełnij wszystkie pola.</div>";
-    }
-}
 $users = getUsers();
 ?>
 
@@ -25,7 +13,10 @@ $users = getUsers();
     <title>Wydatki - Kalkulator Budżetu</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="fade-in" style="position: relative; overflow-x: hidden;">
+    <!-- Wielki Zegar w tle -->
+    <div id="bg-clock" class="clock-fade" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20vw; font-weight: 900; color: rgba(255,255,255,0.02); z-index: -2; pointer-events: none; white-space: nowrap; user-select: none;"></div>
+    
     <nav>
         <ul>
             <?php if ($userIdForNav): ?>
@@ -41,43 +32,14 @@ $users = getUsers();
     </nav>
 
     <div class="container">
-        <h1>Dodaj wydatek 💸</h1>
-        <?php echo $message; ?>
-        
-        <form method="post">
-            <div class="form-group">
-                <label for="userId">Kto wydał?</label>
-                <select id="userId" name="userId" required>
-                    <option value="" disabled selected>Wybierz osobę...</option>
-                    <?php
-                    foreach ($users as $user) {
-                        $selected = ($user['id'] == $userIdForNav) ? 'selected' : '';
-                        echo "<option value=\"{$user['id']}\" {$selected}>{$user['name']}</option>";
-                    }
-                    ?>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="amount">Kwota (PLN):</label>
-                <input type="number" step="0.01" id="amount" name="amount" required placeholder="np. 150.00">
-            </div>
-            
-            <div class="form-group">
-                <label for="description">Na co?</label>
-                <input type="text" id="description" name="description" required placeholder="np. Paliwo, kino, zakupy">
-            </div>
-            
-            <button type="submit">Zapisz wydatek</button>
-        </form>
+        <h1 style="margin-bottom: 2rem;">Pełna Historia Wydatków 💸</h1>
 
-        <h2 style="text-align: center; margin-top: 3rem;">Historia wydatków (Rodzina)</h2>
         <div class="table-container">
             <table>
                 <tr>
                     <th>Osoba</th>
                     <th>Kwota</th>
-                    <th>Opis</th>
+                    <th>Opis / Kategoria</th>
                     <th>Data</th>
                 </tr>
                 <?php
@@ -87,8 +49,15 @@ $users = getUsers();
                     $userMap[$user['id']] = $user['name'];
                 }
                 
+                // Filtruj po użytkowniku jeśli wybrano
+                if ($userIdForNav) {
+                    $expenses = array_filter($expenses, function($e) use ($userIdForNav) {
+                        return $e['userId'] == $userIdForNav;
+                    });
+                }
+                
                 if(empty($expenses)) {
-                    echo "<tr><td colspan='4' style='text-align: center; color: var(--text-muted);'>Brak wydatków.</td></tr>";
+                    echo "<tr><td colspan='4' style='text-align: center; padding: 3rem;'><div class='empty-state-icon'>💸</div><div style='color: var(--text-muted);'>Brak wydatków.</div></td></tr>";
                 } else {
                     usort($expenses, function($a, $b) {
                         return strtotime($b['date']) - strtotime($a['date']);
@@ -96,11 +65,16 @@ $users = getUsers();
                     
                     foreach ($expenses as $expense) {
                         $userName = $userMap[$expense['userId']] ?? 'Nieznany';
+                        $descWithEmoji = getEmojiForDescription($expense['description']);
+                        $emoji = explode(' ', $descWithEmoji)[0];
+                        $descText = substr(strstr($descWithEmoji," "), 1);
+                        $cat = $expense['category'] ?? 'Inne';
+
                         echo "<tr>
-                                <td>{$userName}</td>
-                                <td style='color: var(--danger-color); font-weight: 600;'>-{$expense['amount']} PLN</td>
-                                <td>{$expense['description']}</td>
-                                <td style='color: var(--text-muted); font-size: 0.85rem;'>{$expense['date']}</td>
+                                <td style='width: 50px;'><div style='background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 50%; text-align: center; width: 40px; height: 40px; line-height: 24px;'>{$emoji}</div></td>
+                                <td><div style='font-weight: 600;'>{$descText}</div><div style='font-size: 0.8rem; color: var(--text-muted);'>{$userName} • Kategoria: {$cat}</div></td>
+                                <td style='text-align: right; color: var(--danger-color); font-weight: 600;'>-{$expense['amount']} PLN</td>
+                                <td style='text-align: right; color: var(--text-muted); font-size: 0.85rem;'>{$expense['date']}</td>
                               </tr>";
                     }
                 }
@@ -108,5 +82,20 @@ $users = getUsers();
             </table>
         </div>
     </div>
+    
+    <?php include 'modal.php'; ?>
+    <script>
+        function updateClock() {
+            const d = new Date();
+            const clock = document.getElementById('bg-clock');
+            if (clock) {
+                clock.innerText = d.getHours().toString().padStart(2, '0') + ':' + 
+                                  d.getMinutes().toString().padStart(2, '0') + ':' + 
+                                  d.getSeconds().toString().padStart(2, '0');
+            }
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
 </body>
 </html>

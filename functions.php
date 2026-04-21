@@ -1,10 +1,8 @@
 <?php
 
-// Funkcje do obsługi JSON: zapis i odczyt
+// Funkcje do obsługi JSON
 function readJson($file) {
-    if (!file_exists($file)) {
-        return [];
-    }
+    if (!file_exists($file)) return [];
     $data = file_get_contents($file);
     return json_decode($data, true) ?: [];
 }
@@ -13,28 +11,45 @@ function writeJson($file, $data) {
     file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT));
 }
 
-// Dodanie użytkownika
+// Użytkownicy
 function addUser($name) {
-    if (empty($name)) {
-        return false; // Zabezpieczenie przed pustymi danymi
-    }
+    if (empty($name)) return false;
     $users = readJson('data/users.json');
-    $id = count($users) + 1; // Prosty przydział ID
+    $id = count($users) + 1;
     $users[] = ['id' => $id, 'name' => $name];
     writeJson('data/users.json', $users);
     return $id;
 }
 
-// Pobranie listy użytkowników
 function getUsers() {
     return readJson('data/users.json');
 }
 
-// Dodanie dochodu
-function addIncome($userId, $amount, $description) {
-    if (empty($userId) || empty($amount) || empty($description)) {
-        return false; // Zabezpieczenie przed pustymi danymi
+// Emotki
+function getEmojiForDescription($desc) {
+    $descLower = mb_strtolower($desc);
+    $mapping = [
+        'zakupy' => '🛒', 'biedronka' => '🐞', 'lidl' => '🛒', 'zabka' => '🐸', 'żabka' => '🐸',
+        'paliwo' => '⛽', 'orlen' => '⛽', 'bp' => '⛽', 'shell' => '⛽', 'samochód' => '🚗', 'auto' => '🚗',
+        'kino' => '🍿', 'netflix' => '🎬', 'spotify' => '🎧', 'rozrywka' => '🎮',
+        'jedzenie' => '🍔', 'pizza' => '🍕', 'restauracja' => '🍽️', 'pyszne' => '🛵', 'mcdonald' => '🍟',
+        'rachunki' => '📄', 'prąd' => '⚡', 'woda' => '💧', 'gaz' => '🔥', 'czynsz' => '🏠',
+        'leki' => '💊', 'apteka' => '⚕️', 'zdrowie' => '❤️',
+        'ubrania' => '👕', 'buty' => '👟', 'zalando' => '🛍️',
+        'wypłata' => '💰', 'pensja' => '💵', 'premia' => '🎉', 'prezent' => '🎁'
+    ];
+    
+    foreach ($mapping as $keyword => $emoji) {
+        if (strpos($descLower, $keyword) !== false) {
+            return $emoji . ' ' . $desc;
+        }
     }
+    return '📝 ' . $desc;
+}
+
+// Dochody
+function addIncome($userId, $amount, $description) {
+    if (empty($userId) || empty($amount) || empty($description)) return false;
     $incomes = readJson('data/incomes.json');
     $incomes[] = [
         'userId' => $userId,
@@ -46,149 +61,153 @@ function addIncome($userId, $amount, $description) {
     return true;
 }
 
-// Dodanie wydatku
-function addExpense($userId, $amount, $description) {
-    if (empty($userId) || empty($amount) || empty($description)) {
-        return false; // Zabezpieczenie przed pustymi danymi
-    }
+// Wydatki (dodano kategorię)
+function addExpense($userId, $amount, $description, $category = 'Inne') {
+    if (empty($userId) || empty($amount) || empty($description)) return false;
     $expenses = readJson('data/expenses.json');
     $expenses[] = [
         'userId' => $userId,
         'amount' => $amount,
         'description' => $description,
+        'category' => $category,
         'date' => date('Y-m-d')
     ];
     writeJson('data/expenses.json', $expenses);
     return true;
 }
 
-// Pobranie sumy przychodów
-function getTotalIncome() {
+// STATYSTYKI MIESIĘCZNE
+function getCurrentMonthStr($month = null) {
+    return $month ? $month : date('Y-m');
+}
+
+function getTotalIncome($month = null) {
+    $targetMonth = getCurrentMonthStr($month);
     $incomes = readJson('data/incomes.json');
     $total = 0;
     foreach ($incomes as $income) {
-        $total += $income['amount'];
+        if (substr($income['date'], 0, 7) == $targetMonth) $total += $income['amount'];
     }
     return $total;
 }
 
-// Pobranie sumy wydatków
-function getTotalExpenses() {
+function getTotalExpenses($month = null) {
+    $targetMonth = getCurrentMonthStr($month);
     $expenses = readJson('data/expenses.json');
     $total = 0;
-    foreach ($expenses as $expense) {
-        $total += $expense['amount'];
+    foreach ($expenses as $exp) {
+        if (substr($exp['date'], 0, 7) == $targetMonth) $total += $exp['amount'];
     }
     return $total;
 }
 
-// Pobranie salda
-function getBalance() {
-    return getTotalIncome() - getTotalExpenses();
+function getBalance($month = null) {
+    return getTotalIncome($month) - getTotalExpenses($month);
 }
 
-// Ustawienie budżetu miesięcznego
+// Budżet
 function setBudget($amount) {
-    if ($amount <= 0) {
-        return false; // Zabezpieczenie przed nieprawidłowymi wartościami
-    }
+    if ($amount <= 0) return false;
     $month = date('Y-m');
-    $budget = ['month' => $month, 'amount' => $amount];
-    writeJson('data/budget.json', [$budget]); // Jeden wpis na miesiąc
+    $budgets = readJson('data/budget.json');
+    
+    $found = false;
+    foreach ($budgets as &$b) {
+        if ($b['month'] == $month) {
+            $b['amount'] = $amount;
+            $found = true;
+            break;
+        }
+    }
+    if (!$found) {
+        $budgets[] = ['month' => $month, 'amount' => $amount];
+    }
+    writeJson('data/budget.json', $budgets);
     return true;
 }
 
-// Pobranie budżetu na bieżący miesiąc
-function getBudget() {
+function getBudget($month = null) {
+    $targetMonth = getCurrentMonthStr($month);
     $budgets = readJson('data/budget.json');
-    $currentMonth = date('Y-m');
     foreach ($budgets as $b) {
-        if ($b['month'] == $currentMonth) {
-            return $b['amount'];
-        }
+        if ($b['month'] == $targetMonth) return $b['amount'];
     }
     return 0;
 }
 
-// Obliczenie wydatków w bieżącym miesiącu
-function getSpentThisMonth() {
-    $expenses = readJson('data/expenses.json');
-    $currentMonth = date('Y-m');
-    $total = 0;
-    foreach ($expenses as $exp) {
-        if (substr($exp['date'], 0, 7) == $currentMonth) {
-            $total += $exp['amount'];
-        }
-    }
-    return $total;
+function getRemaining($month = null) {
+    return getBudget($month) - getTotalExpenses($month);
 }
 
-// Obliczenie pozostałego budżetu
-function getRemaining() {
-    return getBudget() - getSpentThisMonth();
+function getUsagePercent($month = null) {
+    $budget = getBudget($month);
+    if ($budget == 0) return 0;
+    return (getTotalExpenses($month) / $budget) * 100;
 }
 
-// Obliczenie procentu wykorzystania budżetu
-function getUsagePercent() {
-    $budget = getBudget();
-    if ($budget == 0) {
-        return 0;
-    }
-    return (getSpentThisMonth() / $budget) * 100;
-}
-
-// Funkcje dla konkretnego użytkownika
-function getTotalIncomeForUser($userId) {
+// Dla konkretnego użytkownika w danym miesiącu
+function getTotalIncomeForUser($userId, $month = null) {
+    $targetMonth = getCurrentMonthStr($month);
     $incomes = readJson('data/incomes.json');
     $total = 0;
     foreach ($incomes as $income) {
-        if ($income['userId'] == $userId) {
+        if ($income['userId'] == $userId && substr($income['date'], 0, 7) == $targetMonth) {
             $total += $income['amount'];
         }
     }
     return $total;
 }
 
-function getTotalExpensesForUser($userId) {
+function getTotalExpensesForUser($userId, $month = null) {
+    $targetMonth = getCurrentMonthStr($month);
     $expenses = readJson('data/expenses.json');
     $total = 0;
     foreach ($expenses as $expense) {
-        if ($expense['userId'] == $userId) {
+        if ($expense['userId'] == $userId && substr($expense['date'], 0, 7) == $targetMonth) {
             $total += $expense['amount'];
         }
     }
     return $total;
 }
 
-function getBalanceForUser($userId) {
-    return getTotalIncomeForUser($userId) - getTotalExpensesForUser($userId);
+function getBalanceForUser($userId, $month = null) {
+    return getTotalIncomeForUser($userId, $month) - getTotalExpensesForUser($userId, $month);
 }
 
-function getSpentThisMonthForUser($userId) {
+function getRemainingForUser($userId, $month = null) {
+    return getBudget($month) - getTotalExpensesForUser($userId, $month);
+}
+
+function getUsagePercentForUser($userId, $month = null) {
+    $budget = getBudget($month);
+    if ($budget == 0) return 0;
+    return (getTotalExpensesForUser($userId, $month) / $budget) * 100;
+}
+
+// Kategorie (Donut Chart)
+function getExpensesByCategory($userId = null, $month = null) {
+    $targetMonth = getCurrentMonthStr($month);
     $expenses = readJson('data/expenses.json');
-    $currentMonth = date('Y-m');
-    $total = 0;
+    $categories = [];
+    
     foreach ($expenses as $exp) {
-        if ($exp['userId'] == $userId && substr($exp['date'], 0, 7) == $currentMonth) {
-            $total += $exp['amount'];
+        if (substr($exp['date'], 0, 7) == $targetMonth) {
+            if ($userId !== null && $exp['userId'] != $userId) continue;
+            
+            $cat = isset($exp['category']) && !empty($exp['category']) ? $exp['category'] : 'Inne';
+            if (!isset($categories[$cat])) $categories[$cat] = 0;
+            $categories[$cat] += $exp['amount'];
         }
     }
-    return $total;
-}
-
-function getRemainingForUser($userId) {
-    return getBudget() - getSpentThisMonthForUser($userId);
-}
-
-function getUsagePercentForUser($userId) {
-    $budget = getBudget();
-    if ($budget == 0) {
-        return 0;
+    
+    $result = [];
+    foreach ($categories as $k => $v) {
+        $result[] = ['category' => $k, 'amount' => $v];
     }
-    return (getSpentThisMonthForUser($userId) / $budget) * 100;
+    return $result;
 }
 
-// Funkcja do wykresu: miesięczne wydatki dla użytkownika (ostatnie 6 miesięcy)
+// Historia na wykresy słupkowe
 function getMonthlyExpensesForUser($userId) {
     $expenses = readJson('data/expenses.json');
     $monthly = [];
