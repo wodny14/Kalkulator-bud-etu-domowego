@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budżet - Kalkulator Budżetu</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <!-- Wielki Zegar w tle -->
@@ -51,15 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <h2 style="text-align: center;">Stan budżetu na <?php echo date('Y-m'); ?></h2>
             <div class="stat-item">
                 <span class="stat-label">Całkowity budżet:</span>
-                <span class="stat-value"><?php echo getBudget(); ?> PLN</span>
+                <span class="stat-value count-up"><?php echo getBudget(); ?> PLN</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Wydano do tej pory:</span>
-                <span class="stat-value badge bad"><?php echo getTotalExpenses(); ?> PLN</span>
+                <span class="stat-value badge bad count-up"><?php echo getTotalExpenses(); ?> PLN</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Pozostało:</span>
-                <span class="stat-value badge <?php echo getRemaining() >= 0 ? 'good' : 'bad'; ?>">
+                <span class="stat-value badge <?php echo getRemaining() >= 0 ? 'good' : 'bad'; ?> count-up">
                     <?php echo getRemaining(); ?> PLN
                 </span>
             </div>
@@ -74,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="progress-fill" style="width: <?php echo $width; ?>%; background: <?php echo $barColor; ?>;"></div>
                 </div>
                 <div style="text-align: right; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-                    Wykorzystano: <?php echo round($percent, 1); ?>%
+                    Wykorzystano: <span class="count-up"><?php echo round($percent, 1); ?>%</span>
                 </div>
             </div>
         </div>

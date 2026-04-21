@@ -117,19 +117,19 @@ $glowClass = $percent >= 100 ? 'bad' : ($percent >= 80 ? 'warning' : 'good');
                 <h2>Podsumowanie</h2>
                 <div class="stat-item">
                     <span class="stat-label">Suma przychodów:</span>
-                    <span class="stat-value badge good">
+                    <span class="stat-value badge good count-up">
                         <?php echo $isGlobal ? getTotalIncome($currentMonthStr) : getTotalIncomeForUser($selectedUser['id'], $currentMonthStr); ?> PLN
                     </span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Suma wydatków:</span>
-                    <span class="stat-value badge bad">
+                    <span class="stat-value badge bad count-up">
                         <?php echo $isGlobal ? getTotalExpenses($currentMonthStr) : getTotalExpensesForUser($selectedUser['id'], $currentMonthStr); ?> PLN
                     </span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Saldo:</span>
-                    <span class="stat-value badge <?php echo $balance >= 0 ? 'good' : 'bad'; ?>">
+                    <span class="stat-value badge <?php echo $balance >= 0 ? 'good' : 'bad'; ?> count-up">
                         <?php echo $balance; ?> PLN
                     </span>
                 </div>
@@ -139,11 +139,11 @@ $glowClass = $percent >= 100 ? 'bad' : ($percent >= 80 ? 'warning' : 'good');
                 <h2>Budżet</h2>
                 <div class="stat-item">
                     <span class="stat-label">Całkowity budżet:</span>
-                    <span class="stat-value"><?php echo getBudget($currentMonthStr); ?> PLN</span>
+                    <span class="stat-value count-up"><?php echo getBudget($currentMonthStr); ?> PLN</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Wydano:</span>
-                    <span class="stat-value badge bad">
+                    <span class="stat-value badge bad count-up">
                         <?php echo $isGlobal ? getTotalExpenses($currentMonthStr) : getTotalExpensesForUser($selectedUser['id'], $currentMonthStr); ?> PLN
                     </span>
                 </div>
@@ -152,7 +152,7 @@ $glowClass = $percent >= 100 ? 'bad' : ($percent >= 80 ? 'warning' : 'good');
                     <?php 
                         $remaining = $isGlobal ? getRemaining($currentMonthStr) : getRemainingForUser($selectedUser['id'], $currentMonthStr);
                     ?>
-                    <span class="stat-value badge <?php echo $remaining >= 0 ? 'good' : 'bad'; ?>">
+                    <span class="stat-value badge <?php echo $remaining >= 0 ? 'good' : 'bad'; ?> count-up">
                         <?php echo $remaining; ?> PLN
                     </span>
                 </div>
@@ -165,7 +165,7 @@ $glowClass = $percent >= 100 ? 'bad' : ($percent >= 80 ? 'warning' : 'good');
                         <div class="progress-fill" style="width: <?php echo $width; ?>%; background: <?php echo $barColor; ?>;"></div>
                     </div>
                     <div style="text-align: right; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-                        Wykorzystano: <?php echo round($percent, 1); ?>%
+                        Wykorzystano: <span class="count-up"><?php echo round($percent, 1); ?>%</span>
                     </div>
                 </div>
             </div>
@@ -174,11 +174,15 @@ $glowClass = $percent >= 100 ? 'bad' : ($percent >= 80 ? 'warning' : 'good');
         <div class="grid" style="grid-template-columns: 2fr 1fr;">
             <div class="chart-container" style="margin-top: 0;">
                 <h2>Historia (6 miesięcy)</h2>
-                <canvas id="expensesChart"></canvas>
+                <div class="chart-wrapper">
+                    <canvas id="expensesChart"></canvas>
+                </div>
             </div>
             <div class="chart-container" style="margin-top: 0;">
                 <h2>Kategorie</h2>
-                <canvas id="donutChart"></canvas>
+                <div class="chart-wrapper">
+                    <canvas id="donutChart"></canvas>
+                </div>
             </div>
         </div>
 

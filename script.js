@@ -112,3 +112,45 @@ function drawCharts(barData, donutData) {
         }
     });
 }
+
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+        const current = start + (end - start) * easeProgress;
+        
+        let text = current.toFixed(2);
+        if (obj.innerHTML.includes(' PLN')) {
+            obj.innerHTML = text + ' PLN';
+        } else if (obj.innerHTML.includes('%')) {
+            obj.innerHTML = text + '%';
+        } else {
+            obj.innerHTML = text;
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            if (obj.innerHTML.includes(' PLN')) obj.innerHTML = end.toFixed(2) + ' PLN';
+            else if (obj.innerHTML.includes('%')) obj.innerHTML = end.toFixed(2) + '%';
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.count-up').forEach(el => {
+        let text = el.innerText.replace(' PLN', '').replace('%', '').trim();
+        const val = parseFloat(text);
+        if (!isNaN(val)) {
+            // Tymczasowo czyścimy przed startem
+            if (el.innerText.includes(' PLN')) el.innerText = '0.00 PLN';
+            else if (el.innerText.includes('%')) el.innerText = '0.00%';
+            else el.innerText = '0';
+            
+            animateValue(el, 0, val, 1500);
+        }
+    });
+});
