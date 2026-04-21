@@ -87,4 +87,54 @@ function getBalance() {
     return getTotalIncome() - getTotalExpenses();
 }
 
+// Ustawienie budżetu miesięcznego
+function setBudget($amount) {
+    if ($amount <= 0) {
+        return false; // Zabezpieczenie przed nieprawidłowymi wartościami
+    }
+    $month = date('Y-m');
+    $budget = ['month' => $month, 'amount' => $amount];
+    writeJson('data/budget.json', [$budget]); // Jeden wpis na miesiąc
+    return true;
+}
+
+// Pobranie budżetu na bieżący miesiąc
+function getBudget() {
+    $budgets = readJson('data/budget.json');
+    $currentMonth = date('Y-m');
+    foreach ($budgets as $b) {
+        if ($b['month'] == $currentMonth) {
+            return $b['amount'];
+        }
+    }
+    return 0;
+}
+
+// Obliczenie wydatków w bieżącym miesiącu
+function getSpentThisMonth() {
+    $expenses = readJson('data/expenses.json');
+    $currentMonth = date('Y-m');
+    $total = 0;
+    foreach ($expenses as $exp) {
+        if (substr($exp['date'], 0, 7) == $currentMonth) {
+            $total += $exp['amount'];
+        }
+    }
+    return $total;
+}
+
+// Obliczenie pozostałego budżetu
+function getRemaining() {
+    return getBudget() - getSpentThisMonth();
+}
+
+// Obliczenie procentu wykorzystania budżetu
+function getUsagePercent() {
+    $budget = getBudget();
+    if ($budget == 0) {
+        return 0;
+    }
+    return (getSpentThisMonth() / $budget) * 100;
+}
+
 ?>
