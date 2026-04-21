@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <html>
 <head>
-    <title>Użytkownicy - Kalkulator Budżetu Domowego</title>
-</head>
+    <title>Użytkownicy - Kalkulator Budżetu Domowego</title>    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script></head>
 <body>
     <h1>Członkowie rodziny</h1>
     <form method="post">

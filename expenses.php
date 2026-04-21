@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html>
 <head>
     <title>Wydatki - Kalkulator Budżetu Domowego</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
 </head>
 <body>
     <h1>Dodaj wydatek</h1>

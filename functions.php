@@ -188,4 +188,21 @@ function getUsagePercentForUser($userId) {
     return (getSpentThisMonthForUser($userId) / $budget) * 100;
 }
 
+// Funkcja do wykresu: miesięczne wydatki dla użytkownika (ostatnie 6 miesięcy)
+function getMonthlyExpensesForUser($userId) {
+    $expenses = readJson('data/expenses.json');
+    $monthly = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $month = date('Y-m', strtotime("-$i months"));
+        $total = 0;
+        foreach ($expenses as $exp) {
+            if ($exp['userId'] == $userId && substr($exp['date'], 0, 7) == $month) {
+                $total += $exp['amount'];
+            }
+        }
+        $monthly[] = ['month' => $month, 'amount' => $total];
+    }
+    return $monthly;
+}
+
 ?>
