@@ -1,27 +1,76 @@
-// Funkcja do rysowania wykresu wydatków miesięcznych
+// Funkcja do rysowania wykresu wydatków miesięcznych za pomocą Chart.js
+let expensesChartInstance = null;
+
 function drawChart(data) {
-    var canvas = document.getElementById('expensesChart');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var width = canvas.width;
-    var height = canvas.height;
-    var barWidth = width / data.length - 10;
-    var maxAmount = Math.max(...data.map(d => d.amount));
+    var ctx = document.getElementById('expensesChart').getContext('2d');
+    
+    var labels = data.map(d => d.month);
+    var amounts = data.map(d => d.amount);
 
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#f44336'; // Czerwony dla wydatków
+    if (expensesChartInstance) {
+        expensesChartInstance.destroy();
+    }
 
-    data.forEach((item, index) => {
-        var barHeight = (item.amount / maxAmount) * (height - 40);
-        var x = index * (barWidth + 10) + 5;
-        var y = height - barHeight - 20;
-        ctx.fillRect(x, y, barWidth, barHeight);
-
-        // Etykieta miesiąca
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '12px Arial';
-        ctx.fillText(item.month, x, height - 5);
-        ctx.fillText(item.amount + ' PLN', x, y - 5);
-        ctx.fillStyle = '#f44336';
+    expensesChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Wydatki (PLN)',
+                data: amounts,
+                backgroundColor: 'rgba(255, 69, 58, 0.8)', // iOS Red
+                borderColor: 'rgba(255, 69, 58, 1)',
+                borderWidth: 0,
+                borderRadius: 8, // Zaokrąglone słupki jak w iOS
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // Ukrywamy legendę dla czystszego wyglądu
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(28, 28, 30, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' PLN';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(84, 84, 88, 0.2)', // Delikatne linie
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        color: 'rgba(235, 235, 245, 0.6)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false, // Ukrywamy pionowe linie
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        color: 'rgba(235, 235, 245, 0.6)'
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            }
+        }
     });
 }

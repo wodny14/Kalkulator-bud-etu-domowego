@@ -11,9 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         addExpense($userId, $amount, $description);
         $message = "<div class='alert alert-success'>Wydatek dodany pomyślnie.</div>";
     } else {
-        $message = "<div class='alert alert-danger'>Błąd: Wszystkie pola muszą być wypełnione, a kwota większa od 0.</div>";
+        $message = "<div class='alert alert-danger'>Błąd: Uzupełnij wszystkie pola.</div>";
     }
 }
+$users = getUsers();
 ?>
 
 <!DOCTYPE html>
@@ -21,33 +22,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wydatki - Kalkulator Budżetu Domowego</title>
+    <title>Wydatki - Kalkulator Budżetu</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav>
         <ul>
             <?php if ($userIdForNav): ?>
-            <li><a href="index.php?user=<?php echo $userIdForNav; ?>">Pulpit</a></li>
-            <li><a href="income.php?user=<?php echo $userIdForNav; ?>">Dochody</a></li>
-            <li><a href="expenses.php?user=<?php echo $userIdForNav; ?>" class="active">Wydatki</a></li>
+                <li><a href="index.php?user=<?php echo $userIdForNav; ?>">Pulpit</a></li>
             <?php else: ?>
-            <li><a href="family.php">Wybór rodziny</a></li>
+                <li><a href="index.php">Pulpit Rodzinny</a></li>
             <?php endif; ?>
+            <li><a href="income.php<?php echo $userIdForNav ? "?user=$userIdForNav" : ""; ?>"><?php echo $userIdForNav ? "Dochody" : "Dochody (Wszyscy)"; ?></a></li>
+            <li><a href="expenses.php<?php echo $userIdForNav ? "?user=$userIdForNav" : ""; ?>" class="active"><?php echo $userIdForNav ? "Wydatki" : "Wydatki (Wszyscy)"; ?></a></li>
             <li><a href="budget.php">Budżet</a></li>
+            <li><a href="users.php">Członkowie</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <h1>Dodaj wydatek 🛒</h1>
+        <h1>Dodaj wydatek 💸</h1>
         <?php echo $message; ?>
         
         <form method="post">
             <div class="form-group">
-                <label for="userId">Członek rodziny:</label>
+                <label for="userId">Kto wydał?</label>
                 <select id="userId" name="userId" required>
+                    <option value="" disabled selected>Wybierz osobę...</option>
                     <?php
-                    $users = getUsers();
                     foreach ($users as $user) {
                         $selected = ($user['id'] == $userIdForNav) ? 'selected' : '';
                         echo "<option value=\"{$user['id']}\" {$selected}>{$user['name']}</option>";
@@ -58,18 +60,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             <div class="form-group">
                 <label for="amount">Kwota (PLN):</label>
-                <input type="number" step="0.01" id="amount" name="amount" required placeholder="np. 150.50">
+                <input type="number" step="0.01" id="amount" name="amount" required placeholder="np. 150.00">
             </div>
             
             <div class="form-group">
-                <label for="description">Opis:</label>
-                <input type="text" id="description" name="description" required placeholder="np. Zakupy spożywcze">
+                <label for="description">Na co?</label>
+                <input type="text" id="description" name="description" required placeholder="np. Paliwo, kino, zakupy">
             </div>
             
             <button type="submit">Zapisz wydatek</button>
         </form>
 
-        <h2 style="text-align: center; margin-top: 3rem;">Historia wydatków</h2>
+        <h2 style="text-align: center; margin-top: 3rem;">Historia wydatków (Rodzina)</h2>
         <div class="table-container">
             <table>
                 <tr>
@@ -86,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 
                 if(empty($expenses)) {
-                    echo "<tr><td colspan='4' style='text-align: center; color: var(--text-muted);'>Brak zarejestrowanych wydatków.</td></tr>";
+                    echo "<tr><td colspan='4' style='text-align: center; color: var(--text-muted);'>Brak wydatków.</td></tr>";
                 } else {
                     usort($expenses, function($a, $b) {
                         return strtotime($b['date']) - strtotime($a['date']);
@@ -98,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <td>{$userName}</td>
                                 <td style='color: var(--danger-color); font-weight: 600;'>-{$expense['amount']} PLN</td>
                                 <td>{$expense['description']}</td>
-                                <td style='color: var(--text-muted); font-size: 0.875rem;'>{$expense['date']}</td>
+                                <td style='color: var(--text-muted); font-size: 0.85rem;'>{$expense['date']}</td>
                               </tr>";
                     }
                 }
