@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <h1>Dodaj dochód</h1>
     <form method="post">
-        <label for="userId">Użytkownik:</label>
+        <label for="userId">Członek rodziny:</label>
         <select id="userId" name="userId" required>
             <?php
             $users = getUsers();
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <h2>Lista dochodów</h2>
     <table border="1">
         <tr>
-            <th>Użytkownik</th>
+            <th>Członek rodziny</th>
             <th>Kwota</th>
             <th>Opis</th>
             <th>Data</th>
@@ -62,6 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ?>
     </table>
     <br>
-    <a href="index.php">Powrót do dashboard</a>
+    <a href="index.php?user=<?php echo $_GET['user'] ?? ''; ?>">Powrót do dashboard</a>
 </body>
 </html>

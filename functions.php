@@ -137,4 +137,55 @@ function getUsagePercent() {
     return (getSpentThisMonth() / $budget) * 100;
 }
 
+// Funkcje dla konkretnego użytkownika
+function getTotalIncomeForUser($userId) {
+    $incomes = readJson('data/incomes.json');
+    $total = 0;
+    foreach ($incomes as $income) {
+        if ($income['userId'] == $userId) {
+            $total += $income['amount'];
+        }
+    }
+    return $total;
+}
+
+function getTotalExpensesForUser($userId) {
+    $expenses = readJson('data/expenses.json');
+    $total = 0;
+    foreach ($expenses as $expense) {
+        if ($expense['userId'] == $userId) {
+            $total += $expense['amount'];
+        }
+    }
+    return $total;
+}
+
+function getBalanceForUser($userId) {
+    return getTotalIncomeForUser($userId) - getTotalExpensesForUser($userId);
+}
+
+function getSpentThisMonthForUser($userId) {
+    $expenses = readJson('data/expenses.json');
+    $currentMonth = date('Y-m');
+    $total = 0;
+    foreach ($expenses as $exp) {
+        if ($exp['userId'] == $userId && substr($exp['date'], 0, 7) == $currentMonth) {
+            $total += $exp['amount'];
+        }
+    }
+    return $total;
+}
+
+function getRemainingForUser($userId) {
+    return getBudget() - getSpentThisMonthForUser($userId);
+}
+
+function getUsagePercentForUser($userId) {
+    $budget = getBudget();
+    if ($budget == 0) {
+        return 0;
+    }
+    return (getSpentThisMonthForUser($userId) / $budget) * 100;
+}
+
 ?>

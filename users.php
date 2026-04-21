@@ -17,18 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Użytkownicy - Kalkulator Budżetu Domowego</title>
 </head>
 <body>
-    <h1>Użytkownicy</h1>
+    <h1>Członkowie rodziny</h1>
     <form method="post">
-        <label for="name">Nazwa użytkownika:</label>
+        <label for="name">Imię członka rodziny:</label>
         <input type="text" id="name" name="name" required>
-        <button type="submit">Dodaj użytkownika</button>
+        <button type="submit">Dodaj członka rodziny</button>
     </form>
     <br>
-    <h2>Lista użytkowników</h2>
+    <h2>Lista członków rodziny</h2>
     <table border="1">
         <tr>
             <th>ID</th>
-            <th>Nazwa</th>
+            <th>Imię</th>
         </tr>
         <?php
         $users = getUsers();
